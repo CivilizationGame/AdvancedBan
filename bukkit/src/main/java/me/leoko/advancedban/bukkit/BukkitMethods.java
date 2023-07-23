@@ -24,7 +24,10 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 
+import java.util.HashSet;
+import java.util.Random;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -396,5 +399,139 @@ public class BukkitMethods implements MethodInterface {
     @Override
     public boolean isUnitTesting() {
         return false;
+    }
+}
+    class BanIdGenerator extends JavaPlugin {
+    // 全局ban ID列表
+    private HashSet<String> banIdSet = new HashSet<>();
+    private static BanIdGenerator instance;
+    private String lastBanId = null;
+        private java.lang.String String;
+
+        @Override
+    public void onEnable() {
+        instance = this;
+        if(Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null){
+            new BanIdExpansion(this).register();
+        }
+        getLogger().info("BanIdGenerator 已启动！");
+    }
+    @Override
+    public void onDisable() {
+        getLogger().info("BanIdGenerator 已停用！");
+    }
+
+    public static BanIdGenerator getInstance() {
+        return instance;
+    }
+
+    // banID生成方法
+    public String generateBanId(String type) {
+        String prefix = "";
+        switch (type) {
+            case "Cheating":
+                prefix = "CHE";
+                break;
+            case "BadSkinCape":
+                prefix = "BSC";
+                break;
+            case "BadBuild":
+                prefix = "BBD";
+                break;
+            case "BadChat":
+                prefix = "BCT";
+                break;
+            case "Griefing":
+                prefix = "GFG";
+                break;
+            case "Exploiting":
+                prefix = "EPT";
+                break;
+            case "altban":
+                prefix = "ALT";
+                break;
+            default:
+                break;
+        }
+        String banId = prefix + generateRandomString();
+        while(banIdSet.contains(banId)) {
+            banId = prefix + generateRandomString();
+        }
+        banIdSet.add(banId);
+        lastBanId = banId;
+        broadcastBanMessage();
+        return banId;
+    }
+
+    public String getLastBanId() {
+        return lastBanId;
+    }
+
+    // 广播封禁信息
+    private void broadcastBanMessage() {
+        Bukkit.getServer().broadcastMessage(ChatColor.RED + "A player has been removed from this game.");
+        Bukkit.getServer().broadcastMessage(ChatColor.AQUA + "Use /report to continue helping out the server!");
+    }
+
+    // 生成随机的五位字母+数字组合
+    private String generateRandomString() {
+        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+        StringBuilder stringBuilder = new StringBuilder();
+        Random rnd = new Random();
+        while (stringBuilder.length() < 5) {
+            int index = (int) (rnd.nextFloat() * characters.length());
+            stringBuilder.append(characters.charAt(index));
+        }
+        return stringBuilder.toString();
+    }
+
+        public String getString() {
+            return String;
+        }
+
+        public void setString(String string) {
+            this.String = string;
+        }
+
+        public class BanIdExpansion extends PlaceholderExpansion {
+
+        private BanIdGenerator plugin;
+
+        public BanIdExpansion(BanIdGenerator plugin){
+            this.plugin = plugin;
+        }
+
+        @Override
+        public boolean canRegister(){
+            return true;
+        }
+
+        @Override
+        public boolean persist(){
+            return true;
+        }
+
+        @Override
+        public String getIdentifier() {
+            return "banidgenerator";
+        }
+
+        @Override
+        public String getAuthor() {
+            return "pkqa";
+        }
+
+        @Override
+        public String getVersion() {
+            return "1.0.0";
+        }
+
+        @Override
+        public String onPlaceholderRequest(Player player, String identifier){
+            if(identifier.equals("banid")){
+                return plugin.getString();
+            }
+            return null;
+        }
     }
 }

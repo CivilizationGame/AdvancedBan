@@ -5,7 +5,7 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
 /**
- * Event fired when a punishment is created
+ * E vent fired when a punishment is created
  */
 public class PunishmentEvent extends Event {
 	
